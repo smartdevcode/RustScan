@@ -62,7 +62,7 @@ fn main() {
 
     rayon::ThreadPoolBuilder::new().num_threads(threads).build_global().unwrap();
    
-    let duration_timeout = Duration::from_millis(800);
+    let duration_timeout = Duration::from_millis(100);
 
 
     // here I commit war crimes and try to do concurrency
@@ -74,7 +74,6 @@ fn main() {
     let output: Vec<i32> = (1..65536).into_par_iter()
     .map(|x: i32| scan(addr, x, duration_timeout))
     .collect();
-    //println!("{:?}", output);
 
     // let _nmap: &str = "nmap -A -sV -vvv -p $ports $ipaddr"
 }
