@@ -3,7 +3,7 @@ use clap::{App, crate_authors, Arg};
 use std::{str::FromStr, net::{IpAddr, TcpStream, SocketAddr}, ops::Range, u16, io};
 use rayon::{current_num_threads, prelude::*};
 use arrayvec::ArrayVec;
-use std::{sync::Mutex, time::Duration};
+use std::time::Duration;
 
 /// Faster Nmap scanning with Rust
 ///
@@ -21,19 +21,29 @@ fn main() {
             .index(1)
             .long("--ip-address")
             .help("The IP address to scan"))
-        .arg(Arg::with_name("p")
-            .index(2)
+        .arg(Arg::with_name("-p")
             .long("--ports")
-            .help("The port range you want to scan"))
+            .help("The port range you want to scan")
+            .takes_value(true))
+        .arg(Arg::with_name("-t")
+            .long("--threads")
+            .takes_value(true)
+            .help("How many threads do you want to use? Default 1000"))
         .get_matches();
 
     print_opening();
 
     let ip = matches.value_of("i").unwrap_or("None");
+    let threads_str = matches.value_of("-t").unwrap_or("None");
+
     if ip == "None"{
         println!("{}", "Error: No input was given.".red());
         return ();
     }
+    let threads: usize = if !(threads_str == "None") {threads_str.parse::<usize>().unwrap()} else {1000};
+    println!("Threads is now set to {}", threads);
+
+    
 
     // validatses the IP address and turns it into an IpAddr type
     let addr = IpAddr::from_str(&ip)
@@ -41,7 +51,7 @@ fn main() {
 
     println!("IP is {}", addr);
 
-    rayon::ThreadPoolBuilder::new().num_threads(1000).build_global().unwrap();
+    rayon::ThreadPoolBuilder::new().num_threads(threads).build_global().unwrap();
     thread_scan(addr);
 
     // let _nmap: &str = "nmap -A -sV -vvv -p $ports $ipaddr"
@@ -53,39 +63,32 @@ fn thread_scan(addr: IpAddr){
     
     // timeout in miliseconds
     // TODO set this to ping
-    let duration_timeout = Duration::from_millis(600);
-    
-    let mut arr = Mutex::new(Vec::new());
+    let duration_timeout = Duration::from_millis(200);
 
     // performs the scan using rayon
     // 65535 + 1 because of 0 indexing
-    (1..100).into_par_iter().for_each(|x: i32| {
-        // if valid port, 
-        let result = scan(addr, x, duration_timeout);
-        if result.0 == true{
-            arr.push(result.2);
-        }
+    (1..65536).into_par_iter().for_each(|x: i32| {
+        let string_list = vec![addr.to_string(), x.to_string()].join(":");
+        let server: SocketAddr = string_list
+        .parse()
+        .expect("Unable to parse socket address");
+        scan(server, duration_timeout);
         }
     )
 }
     
 
-fn scan(addr: IpAddr, port_num: i32, duration_timeout: Duration) -> (bool, IpAddr, String){
+fn scan(server: SocketAddr, duration_timeout: Duration){
     // pings it to see if its open
-    let string_list = vec![addr.to_string(), ].join(":");
-    let server: SocketAddr = string_list
-    .parse()
-    .expect("Unable to parse socket address");
     //     match TcpStream::connect_timeout(&server, duration_timeout) {
+
     match TcpStream::connect_timeout(&server,duration_timeout) {
         Ok(_) => {
             // Found open port, indicate progress and send to main thread
             println!("{}", server.to_string().green());
-            return (true, addr, port_num.to_string());
         }
-        Err(_) => {
-            return (false, addr, port_num.to_string());
-        }
+        Err(_) => {}
+
     }
 }
 fn print_opening(){
