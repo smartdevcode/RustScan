@@ -22,7 +22,30 @@ Find all open ports <b>fast</b> with Rustscan, automatically pipe them into Nmap
 2. Automatically runs `nmap -A -p $ports -vvv` on those ports.
 3. Profit???
 
-![gif](/pictures/intro.gif)
+<table>
+  <tr>
+  <th>Name</th>
+    <th>⚡ Nmap <b>with RustScan</b> ⚡ </th>
+    <th>🐢 Nmap 🐢</th>
+  </tr>
+  <tr>
+  <th>Gif</th>
+    <td><img src="pictures/with_rustscan.gif" alt="The guy she tells you not to worry about"></td>
+    <td><img src="pictures/without_rustscan.gif" alt="You"></td>
+  </tr>
+  <tr>
+  <th>Time</th>
+    <td><b>39 seconds</b></td>
+    <td><b>17 minutes and 41 seconds</b></td>
+  </tr>
+    <tr>
+  <th>Setup</th>
+    <td><ul><li>Set threads to 1000</li></ul></td>
+    <td><ul><li>Run nmap with -A for all scripts</li><li>Run Nmap with -p- for all ports</li></ul></td>
+  </tr>
+</table>
+
+<sub><b>Note</b> The nmap command used was the same for both of them. Nmap -A.</sub><br>
 
 Rustscans **only** job is to reduce the friction between finding open ports and inputting them into nmap.
 
@@ -33,32 +56,8 @@ Rustscans **only** job is to reduce the friction between finding open ports and 
 
 # 🔭 Why RustScan?
 Why spend time running fast scans and manually copying the ports, or waiting for a 20 minute scan to finish when you can just do all 64k ports in less than a minute?
-## 🔬 Nmap with and without RustScan
 
-<table>
-  <tr>
-  <th>Name</th>
-    <th>⚡ Nmap with RustScan ⚡ </th>
-    <th>🐢 Nmap 🐢</th>
-  </tr>
-  <tr>
-  <th>Gif</th>
-    <td><img src="pictures/with_rustscan.gif" alt="The guy she tells you not to worry about"></td>
-    <td><img src="pictures/without_rustscan.gif" alt="You"></td>
-  </tr>
-  <tr>
-  <th>Time</th>
-    <td>39 seconds</td>
-    <td>17 minutes and 41 seconds</td>
-  </tr>
-    <tr>
-  <th>Setup</th>
-    <td><ul><li>Set threads to 1000</li></ul></td>
-    <td><ul><li>Run nmap with -A for all scripts</li><li>Run Nmap with -p- for all ports</li></ul></td>
-  </tr>
-</table>
-
-<sub><b>Note</b> The nmap command used was the same for both of them. Nmap -A.</sub><br>
+![gif](/pictures/intro.gif)
 
 ## 📊 RustScan vs Nmap vs MassScan
 
