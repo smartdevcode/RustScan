@@ -14,8 +14,8 @@
 | <p align="center"><a href="https://crates.io/crates/rust_scan">🔧 Cargo (Universal) </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> Arch </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> HomeBrew </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> Kali / Debian </p> |
 | ---- | ---- | ---- | --- |
 | <p align="center"><img src="pictures/rust.png" /></p>  | <p align="center"><img src="pictures/arch.png" /></p> | <p align="center"><img src="pictures/apple.png" /></p> | <p align="center"><img src="pictures/kali.png" /></p> |
-| Version 1.0.1 | Version 1.0.0 | Version 1.0.0 | Version 1.0.0 |
-| `cargo install rust_scan` | `yay rustscan` | `brew tap brandonskerritt/rustscan && brew install rustscan` | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) |
+| **Version 1.1.0** | Version 1.0.0 | Version 1.0.0 | Version 1.0.0 |
+| `cargo install rustscan` | `yay rustscan` | `brew tap brandonskerritt/rustscan && brew install rustscan` | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) |
 
 **Note**: You must have Nmap installed.
 <hr>
@@ -43,9 +43,7 @@
   </tr>
 </table>
 
-<sub><b>Note</b> The nmap command used was the same for both of them. Nmap -A.</sub><br>
-
-**RustScan takes the Nmap scan down to 39 seconds from 17 minutes and 41 seconds.**
+<sub><b>Note</b> This is an older gif. RustScan's current top speed is 8 seconds for all 65k ports. This gif is 26 seconds.</sub><br>
 
 RustScans **only** job is to reduce the friction between finding open ports and inputting them into nmap.
 
