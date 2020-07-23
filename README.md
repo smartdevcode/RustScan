@@ -14,8 +14,8 @@
 | <p align="center"><a href="https://crates.io/crates/rustscan">🔧 Cargo (Universal) </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> Arch </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> HomeBrew </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> Kali / Debian </p> |
 | ---- | ---- | ---- | --- |
 | <p align="center"><img src="pictures/rust.png" /></p>  | <p align="center"><img src="pictures/arch.png" /></p> | <p align="center"><img src="pictures/apple.png" /></p> | <p align="center"><img src="pictures/kali.png" /></p> |
-| **Version 1.1.0** | Version 1.0.0 **AUR IS BROKEN** | Version 1.0.0 **HOMEBREW ON MAC IS BROKEN, LINUX IS FINE** | Version 1.0.0 |
-| `cargo install rustscan` | `yay rustscan` | `brew tap brandonskerritt/rustscan && brew install rustscan` | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) |
+| **Version 1.1.0** | Version 1.0.0 | Version 1.0.0 **HOMEBREW ON MAC IS BROKEN, LINUX IS FINE** | Version 1.0.0 |
+| `cargo install rustscan` | `yay -S rustscan-bin` | `brew tap brandonskerritt/rustscan && brew install rustscan` | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) |
 
 **Note**: Version 1.1 runs in 8 seconds with batch size 10,000, version 1 runs in ~26 seconds on 1k threads, or average 1 - 2 minutes. I am updating the other package, but for maximum speed and latest support please use Cargo.
 <hr>
@@ -23,8 +23,7 @@
 # 🤔 What is this?
 1. Find ports quickly using Rustscan (**8 seconds at its fastest**).
 2. Automatically runs `nmap` on those ports.
-3. ???
-4. Profit!
+3. Profit???
 
 <table>
   <tr>
