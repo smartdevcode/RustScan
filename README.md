@@ -161,7 +161,7 @@ ARGS:
                     -vvv -p $PORTS 
 ```
 
-The format is `rustcan -b 500 -T 1500 192.168.0.1` to scan 192.168.0.1 with 500 batch size with a timeout of 1500ms. The timeout is how long RustScan waits for a response until it assumes the port is closed.
+The format is `rustscan -b 500 -T 1500 192.168.0.1` to scan 192.168.0.1 with 500 batch size with a timeout of 1500ms. The timeout is how long RustScan waits for a response until it assumes the port is closed.
 
 The batch size determines how fast RustScan is. Set it to 65k, and it will scan all 65k ports at the same time. This means at at 65k batch size, RustScan will take TIMEOUT long to scan all ports. Essentially, if timeout is 1000ms, **RustScan can scan in 1 second**. 
 
@@ -244,10 +244,13 @@ RustScan automatically runs `nmap -vvv -p $PORTS $IP`. To make it run `-A`, exec
 
 ## 🎯 Increasing speed / accuracy
 * Batch size
+
 This increases speed, by allowing us to process more at once. Something experimental I am working on is changing the open file limit. You can do this manually with `ulimit -n 70000` and then running rustscan with `-B 65535`. This _should_ scan all 65535 ports at the exact same time. But this is extremely experimental.
 
 For non-experimental speed increases, slowly increase the batch size until it no longer gets open ports, or it breaks.
+
 * Accuracy (and some speed)
+
 To increase accuracy, the easiest way is to increase the timeout. The default is 1.5 seconds, by setting it to 4 seconds (4000) we are telling RustScan "if we do not hear back from a port in 4 seconds, assume it is closed".
 
 Decreasing accuracy gives some speed bonus, but my testing found that batch size dramatically changed the speed whereas timeout did, but not so much.
