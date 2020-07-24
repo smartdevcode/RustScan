@@ -23,4 +23,3 @@ rlimit = "0.3.0"
 
 [package.metadata.deb]
 depends = "$auto, nmap"
- 
