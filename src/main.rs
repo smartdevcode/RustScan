@@ -64,7 +64,7 @@ fn main() {
     let command_matches= matches.values_of("command");
     let command_run: String = match command_matches {
         // We use the user supplied args
-        Some(x) => {
+        Some(_x) => {
             // TODO x is the same as below, use that instead
             matches.values_of("command").unwrap().collect::<Vec<_>>().join(" ")
         }
@@ -91,8 +91,15 @@ fn main() {
         if !quiet{
             println!("Automatically upping ulimit to {}", ulimit_arg);
         }
-        setrlimit(Resource::NOFILE, limit, limit);
+        let uresult = setrlimit(Resource::NOFILE, limit, limit);
+
+        match uresult {
+            Ok(_) => {}
+            Err(_) => {println!("ERROR.  Failed to set Ulimit.")}
+        }
     }
+
+    
 
     let (x, _) = getrlimit(Resource::NOFILE).unwrap(); 
 
@@ -142,7 +149,7 @@ fn main() {
 
 
     // 65535 + 1 because of 0 indexing
-    let test = run_batched(ip, 1, 65536, Duration::from_millis(duration_timeout,),  batch_size.try_into().unwrap(), quiet);
+    let test = run_batched(ip.to_string(), 1, 65536, Duration::from_millis(duration_timeout,),  batch_size.try_into().unwrap(), quiet);
     let reports_fullsult = block_on(test);
 
 
@@ -194,7 +201,7 @@ fn main() {
 }
 
 pub async fn run_batched(
-    host: &str,
+    host: String,
     port_start: u32,
     port_end: u32,
     timeout: Duration,
@@ -207,7 +214,7 @@ pub async fn run_batched(
     let mut all_addrs: std::vec::Vec<u32> = Vec::new();
 
     while end <= port_end {
-        let mut batch_addrs = execute(host, begin, end, timeout, quiet).await;
+        let mut batch_addrs = execute(host.clone(), begin, end, timeout, quiet).await;
         all_addrs.append(&mut batch_addrs);
         begin = end+1;
         end += batch;
@@ -215,7 +222,7 @@ pub async fn run_batched(
     all_addrs
 }
 async fn execute(
-    host: &str,
+    host: String,
     port_start: u32,
     port_end: u32,
     timeout: Duration,
@@ -225,7 +232,7 @@ async fn execute(
     let mut ftrs = FuturesUnordered::new();
     // TODO can I make this async?
     for port in port_start..port_end {
-        ftrs.push(try_connect(host, port, timeout, quiet));
+        ftrs.push(try_connect(host.clone(), port, timeout, quiet));
     }
 
     let mut open_addrs: Vec<u32> = Vec::new();
@@ -239,8 +246,8 @@ async fn execute(
     open_addrs
 }
 
-async fn try_connect(host: &str, port: u32, timeout: Duration, quiet: bool) -> io::Result<u32> {
-    let addr = format!("{}:{}", host , port);
+async fn try_connect(host: String, port: u32, timeout: Duration, quiet: bool) -> io::Result<u32> {
+    let addr = host.to_string() + ":" + &port.to_string();
     match addr.parse() {
         Ok(sock_addr) => match connect(sock_addr, timeout).await {
             Ok(stream_result) => {
@@ -257,7 +264,6 @@ async fn try_connect(host: &str, port: u32, timeout: Duration, quiet: bool) -> i
                 ErrorKind::Other => {
                     eprintln!("{:?}", e); // in case we get too many open files
                     panic!("Too many open files. Please reduce batch size. The default is 5000. Try -b 2500.");
-                    Err(e)
                 }
                 _ => Err(io::Error::new(io::ErrorKind::Other, e.to_string())),
             },
@@ -265,7 +271,6 @@ async fn try_connect(host: &str, port: u32, timeout: Duration, quiet: bool) -> i
         Err(e) => {
             eprintln!("Unable to convert to socket address {:?}", e);
             panic!("Unable to convert to socket address");
-            Err(io::Error::new(io::ErrorKind::Other, e.to_string()))
         }
     }
 }
