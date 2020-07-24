@@ -185,12 +185,10 @@ fn main() {
     let vec = command_list.collect::<Vec<&str>>();
 
     // Runs the nmap command and spawns it as a process.
-    let mut child = Command::new("nmap")
+    Command::new("nmap")
         .args(&vec)
         .spawn()
-        .expect("failed to execute nmap process");
-
-    child.wait().expect("failed to wait on nmap process");
+        .expect("failed to execute process");
 }
 
 pub async fn run_batched(
