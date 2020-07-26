@@ -1,5 +1,3 @@
-extern crate shell_words;
-
 mod scanner;
 use scanner::Scanner;
 
@@ -175,15 +173,16 @@ fn main() {
         exit(1);
     }
 
-    let nmap_args = format!("{} {} {} {} {} {}", &command_run, "-Pn", "-vvv", "-p", &ports_str, ip);
-    if !quiet {
-        println!("The Nmap command to be run is {}", &nmap_args);
+    let string_format = format!("{} {} {} {} {} {}", command_run, "-Pn", "-vvv", "-p", &ports_str, ip);
+    if !quiet{
+        println!("The Nmap command to be run is {}", string_format);
     }
-    let nmap_args = shell_words::split(&nmap_args).expect("failed to parse nmap arguments");
+    let command_list = string_format.split_whitespace();
+    let vec = command_list.collect::<Vec<&str>>();
 
     // Runs the nmap command and spawns it as a process.
     let mut child = Command::new("nmap")
-        .args(&nmap_args)
+        .args(&vec)
         .spawn()
         .expect("failed to execute nmap process");
 
@@ -200,9 +199,7 @@ fn print_opening() {
     |_|  \\_\\__,_|___/\\__|_____/ \\___\\__,_|_| |_|
     Faster nmap scanning with rust.";
     println!(
-        "{} \n {} \n {}",
-        s.green(),
-        "Automated Decryption Tool - https://github.com/ciphey/ciphey".green(),
-        "Creator https://github.com/brandonskerritt".green()
+        "\n {}",
+        s
     );
 }
