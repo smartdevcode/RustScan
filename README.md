@@ -1,23 +1,11 @@
 <p align="center">
-➡️ 
-<a href="https://discord.gg/r38pna">Discord</a> |
- <a href="https://github.com/RustScan/RustScan#-full-installation-guide">Installation Guide</a> |
- <a href="https://github.com/RustScan/RustScan#-usage">Usage Guide</a>
- ⬅️
-<br>
-<img src="pictures/rustscan.png">
-</p>
-<p align="center">
-<u><b> Turns a 17 minutes Nmap scan into 19 seconds. </b></u><br> Find all open ports <b>fast</b> with RustScan, automatically pipe them into Nmap. 
+<img src="pictures/rustscan.png"><br>
+<u><b> Turns a 17 minutes Nmap scan into 19 seconds. </b></u><br> Find all open ports <b>fast</b> with Rustscan, automatically pipe them into Nmap. 
 </p>
 <p align="center">
 <img alt="AUR version" src="https://img.shields.io/aur/version/rustscan-bin">
 <img src="https://img.shields.io/badge/Built%20with-Rust-Purple">
 <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/brandonskerritt/rustscan">
-<img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/rustscan/rustscan/total?label=GitHub%20Downloads">
-<img alt="Crates.io" src="https://img.shields.io/crates/d/rustscan?label=Cargo%20Downloads">
-<img alt="Discord" src="https://img.shields.io/discord/736614461313515576">
-<img alt="Actions" src="https://github.com/RustScan/RustScan/workflows/Continuous%20integration/badge.svg">
 </p>
 <hr>
 
@@ -25,7 +13,7 @@
 | <p align="center"><a href="https://crates.io/crates/rustscan">🔧 Cargo (Universal) </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> Arch </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> HomeBrew </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> Kali / Debian </p> |
 | ---- | ---- | ---- | --- |
 | <p align="center"><img src="pictures/rust.png" /></p>  | <p align="center"><img src="pictures/arch.png" /></p> | <p align="center"><img src="pictures/apple.png" /></p> | <p align="center"><img src="pictures/kali.png" /></p> |
-| `cargo install rustscan` | `yay -S rustscan-bin` | `brew tap brandonskerritt/rustscan && brew install rustscan` | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) |
+| `cargo install rustscan` | `yay -S rustscan` | `brew tap brandonskerritt/rustscan && brew install rustscan` | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) |
 
 <hr>
 
@@ -108,12 +96,8 @@ Note: sometimes Rust doesn't add Cargo to the path. Please see [this issue](http
 ## 🖥️ Debian / Kali
 
 Download the .deb file from the releases page:
-
 [https://github.com/brandonskerritt/RustScan/releases](https://github.com/brandonskerritt/RustScan/releases)
-
-Run the commpand `dpkg -i` on the file. 
-
-Note: sometimes you can double click the file to achieve the same result.
+Run the commpand `dpkg -i` on the file. Note: sometimes you can double click the file to achieve the same result.
 
 ### 🥧 .deb file not working?
 The .deb file only works on AMD64 CPUs. If yours is different (such as a Raspberry Pi) or the .deb file doesn't work, it is easy to build the .deb file yourself.
@@ -262,7 +246,7 @@ To run your own nmap commands, end the RustScan command with `-- -A` where `--` 
 
 RustScan automatically runs `nmap -vvv -p $PORTS $IP`. To make it run `-A`, execute the command `rustscan 127.0.0.1 -- -A`. 
 
-**Note**: due to how Nmap behaves, sometimes you cannot SIGINT ctrl+c to end the scan and it acts like it is running in the background, but printing to STD::OUT. There is nothing I can do about this, unless I create a TTY shell for the sole purpose of running Nmap. Sorry 😓 I'll try to fix in an upcoming release. If any Rust experts want to help, please do!
+If you want to run commands such as `--script (vuln and safe)`, you will need to enclose it in quotations like so `--script '"(vuln and safe) or default"'`.
 
 ## 🎯 Increasing speed / accuracy
 * Batch size
@@ -286,7 +270,7 @@ Ciphey is an automated decryption tool using artifical intelligence & natural la
 [Check it out here!](https://github.com/ciphey/ciphey)
 ## Contributors ✨
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -301,6 +285,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/smackhack"><img src="https://avatars2.githubusercontent.com/u/48143394?v=4" width="100px;" alt=""/><br /><sub><b>smackhack</b></sub></a><br /><a href="#ideas-smackhack" title="Ideas, Planning, & Feedback">🤔</a> <a href="#example-smackhack" title="Examples">💡</a></td>
     <td align="center"><a href="http://bernardoamc.github.io/"><img src="https://avatars0.githubusercontent.com/u/428984?v=4" width="100px;" alt=""/><br /><sub><b>Bernardo Araujo</b></sub></a><br /><a href="https://github.com/brandonskerritt/RustScan/commits?author=bernardoamc" title="Code">💻</a> <a href="https://github.com/brandonskerritt/RustScan/issues?q=author%3Abernardoamc" title="Bug reports">🐛</a> <a href="#design-bernardoamc" title="Design">🎨</a></td>
     <td align="center"><a href="https://github.com/Isona"><img src="https://avatars2.githubusercontent.com/u/11759523?v=4" width="100px;" alt=""/><br /><sub><b>Izzy Whistlecroft</b></sub></a><br /><a href="https://github.com/brandonskerritt/RustScan/issues?q=author%3AIsona" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://imlonghao.com"><img src="https://avatars1.githubusercontent.com/u/4951333?v=4" width="100px;" alt=""/><br /><sub><b>imlonghao</b></sub></a><br /><a href="https://github.com/brandonskerritt/RustScan/issues?q=author%3Aimlonghao" title="Bug reports">🐛</a> <a href="#maintenance-imlonghao" title="Maintenance">🚧</a></td>
   </tr>
 </table>
 
