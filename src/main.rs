@@ -39,6 +39,10 @@ struct Opts {
     #[structopt(short, long)]
     ulimit: Option<u64>,
 
+    /// IPv6 mode.
+    #[structopt(short, long)]
+    ipv6: bool,
+
     /// The Nmap arguments to run.
     /// To use the argument -A, end RustScan's args with '-- -A'.
     /// Example: 'rustscan -T 1500 127.0.0.1 -- -A -sC'.
@@ -171,6 +175,7 @@ fn main() {
     child.wait().expect("failed to wait on nmap process");
 }
 
+/// Prints the opening title of RustScan
 fn print_opening() {
     let s = "
      _____           _    _____
@@ -193,6 +198,13 @@ mod tests {
     fn does_it_run() {
         // Makes sure te program still runs and doesn't panic
         let scanner = Scanner::new("127.0.0.1", 1, 65536, 1000, Duration::from_millis(10), true);
+        let scan_result = block_on(scanner.run());
+        // if the scan fails, it wouldn't be able to assert_eq! as it panicked!
+        assert_eq!(1, 1);
+    }
+    fn does_it_run_ivp6() {
+        // Makes sure te program still runs and doesn't panic
+        let scanner = Scanner::new("::1", 1, 65536, 1000, Duration::from_millis(10), true);
         let scan_result = block_on(scanner.run());
         // if the scan fails, it wouldn't be able to assert_eq! as it panicked!
         assert_eq!(1, 1);
