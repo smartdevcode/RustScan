@@ -6,28 +6,26 @@ use futures::stream::FuturesUnordered;
 use std::time::Duration;
 use std::{
     io::ErrorKind,
-    net::{Shutdown, SocketAddr, IpAddr, Ipv6Addr, Ipv4Addr},
+    net::{Shutdown, SocketAddr},
 };
 
 pub struct Scanner {
-    host: IpAddr,
-    start: u16,
-    end: u16,
+    host: String,
+    start: u64,
+    end: u64,
     batch_size: u64,
     timeout: Duration,
     quiet: bool,
-    ipv6: bool,
 }
 
 impl Scanner {
     pub fn new(
-        host: IpAddr,
-        start: u16,
-        end: u16,
+        host: &str,
+        start: u64,
+        end: u64,
         batch_size: u64,
         timeout: Duration,
         quiet: bool,
-        ipv6: bool,
     ) -> Self {
         Self {
             host: host.to_owned(),
@@ -36,13 +34,12 @@ impl Scanner {
             batch_size,
             timeout,
             quiet,
-            ipv6,
         }
     }
 
-    pub async fn run(&self) -> Vec<u16> {
-        let ports: Vec<u16> = (self.start..self.end).collect();
-        let mut open_ports: std::vec::Vec<u16> = Vec::new();
+    pub async fn run(&self) -> Vec<u64> {
+        let ports: Vec<u64> = (self.start..self.end).collect();
+        let mut open_ports: std::vec::Vec<u64> = Vec::new();
 
         for range in ports.chunks(self.batch_size as usize) {
             let mut ports = self.scan_range(range).await;
@@ -52,48 +49,53 @@ impl Scanner {
         open_ports
     }
 
-    async fn scan_range(&self, range: &[u16]) -> Vec<u16> {
+    async fn scan_range(&self, range: &[u64]) -> Vec<u64> {
         let mut ftrs = FuturesUnordered::new();
 
         for port in range {
-            ftrs.push(self.scan_port(*port));
+            ftrs.push(self.scan_port(port));
         }
 
-        let mut open_ports: Vec<u16> = Vec::new();
+        let mut open_ports: Vec<u64> = Vec::new();
         while let Some(result) = ftrs.next().await {
-            open_ports.push(result.into())
-            
+            match result {
+                Ok(port) => open_ports.push(port),
+                _ => {}
+            }
         }
 
         open_ports
     }
 
-    async fn scan_port(&self, port: u16) -> u16 {
-        let addr = SocketAddr::new(self.host, 80);
-        match self.connect(addr).await {
-            Ok(stream_result) => {
-                // match stream_result.shutdown(Shutdown::Both)
-                match stream_result.shutdown(Shutdown::Both) {
-                    _ => {}
-                }
-                if !self.quiet {
-                    println!("Open {}", port.to_string().purple());
-                }
-                // if connection successful
-                // shut down stream
-                // return port
-                port
-            },
-            Err(error) => {
-                panic!("Too many open files. Please reduce batch size. The default is 5000. Try -b 2500.");
-            },
-            Err(error) => {panic!("Invalid socket address")}
-                }
-            }
-        
+    async fn scan_port(&self, port: &u64) -> io::Result<u64> {
+        let addr = format!("{}:{}", self.host, port);
 
-        
-    
+        match addr.parse() {
+            Ok(sock_addr) => match self.connect(sock_addr).await {
+                Ok(stream_result) => {
+                    match stream_result.shutdown(Shutdown::Both) {
+                        _ => {}
+                    }
+                    if !self.quiet {
+                        println!("Open {}", port.to_string().purple());
+                    }
+
+                    Ok(*port)
+                }
+                Err(e) => match e.kind() {
+                    ErrorKind::Other => {
+                        eprintln!("{:?}", e); // in case we get too many open files
+                        panic!("Too many open files. Please reduce batch size. The default is 5000. Try -b 2500.");
+                    }
+                    _ => Err(io::Error::new(io::ErrorKind::Other, e.to_string())),
+                },
+            },
+            Err(e) => {
+                eprintln!("Unable to convert to socket address {:?}", e);
+                panic!("Unable to convert to socket address");
+            }
+        }
+    }
 
     async fn connect(&self, addr: SocketAddr) -> io::Result<TcpStream> {
         let stream =
@@ -101,8 +103,6 @@ impl Scanner {
         Ok(stream)
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {
