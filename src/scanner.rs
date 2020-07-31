@@ -87,6 +87,15 @@ impl Scanner {
     /// Given a port, scan it.
     /// Turns the address into a SocketAddr
     /// Deals with the <result> type
+    /// If it experiences error ErrorKind::Other then too many files are open and it Panics!
+    /// ese any other error, it returns the error in Result as a string
+    /// If no  errors occur, it returns the port number in Result to signify the port is open.
+    /// This function mainly deals with the logic of Results handling.
+    /// # Example
+    /// ```rust
+    ///     self.scan_port(10:u16)
+    /// ```
+    /// Note: `self` must contain `self.host`.
     async fn scan_port(&self, port: u16) -> io::Result<u16> {
         let addr = SocketAddr::new(self.host, port);
         // println!("{:?}", addr);
@@ -118,6 +127,16 @@ impl Scanner {
         
     
     /// Performs the connection to the socket with timeout
+    /// # Example
+    /// ```rust
+    ///     let port: u16 = 80
+    ///     // Host is an IpAddr type
+    ///     let host = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1));
+    ///     let addr = SocketAddr::new(host, port)
+    ///     self.connect(addr)
+    ///     // returns Result which is either Ok(stream) for port is open, or Er for port is closed.
+    ///     // Timesout after self.timeouts seconds
+    ///     ```
     async fn connect(&self, addr: SocketAddr) -> io::Result<TcpStream> {
         let stream =
             io::timeout(self.timeout, async move { TcpStream::connect(addr).await }).await?;
