@@ -11,8 +11,6 @@ use std::process::{exit, Command};
 use std::{net::IpAddr, time::Duration};
 use structopt::StructOpt;
 
-extern crate dirs;
-
 #[macro_use]
 extern crate log;
 
@@ -21,10 +19,7 @@ extern crate log;
 /// Fast Port Scanner built in Rust.
 /// WARNING Do not use this program against sensitive infrastructure since the
 /// specified server may not be able to handle this many socket connections at once.
-/// - Discord https://discord.gg/rAnvBbg
-/// - GitHub https://github.com/RustScan/RustScan
 struct Opts {
-    // TODO default_value is a hack to make it an optional argument
     /// The IP address to scan
     #[structopt(parse(try_from_str))]
     ip: IpAddr,
@@ -48,10 +43,6 @@ struct Opts {
     #[structopt(short, long)]
     ulimit: Option<u64>,
 
-    // Appdirs location. Use this to print out where the config file should go.
-    #[structopt(short, long)]
-    appdirs: bool,
-
     /// The Nmap arguments to run.
     /// To use the argument -A, end RustScan's args with '-- -A'.
     /// Example: 'rustscan -T 1500 127.0.0.1 -- -A -sC'.
@@ -66,22 +57,9 @@ fn main() {
     // logger
     env_logger::init();
 
+    info!("Starting up");
     let mut opts = Opts::from_args();
     info!("Mains() `opts` arguments are {:?}", opts);
-
-    let config = dirs::config_dir();
-
-    let mut config_path = match config {
-        Some(x) => x,
-        None => panic!("Couldn't find config dir"),
-    };
-    config_path.push("config.toml");
-
-    if opts.appdirs {
-        // prints config file location and exits
-        println!("The config file is expected to be at {:?}", config_path);
-        exit(1);
-    }
 
     if !opts.quiet {
         print_opening();
@@ -89,8 +67,6 @@ fn main() {
 
     // Updates ulimit when the argument is set
 
-    // TODO move the ulimit function to a new function
-    // I tried to do this, but I wasn't sure on how to pass opts around
     // Automatically ups the ulimit
     if opts.ulimit.is_some() {
         let limit = opts.ulimit.unwrap();
