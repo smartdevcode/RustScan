@@ -11,10 +11,7 @@ use std::process::{exit, Command};
 use std::{net::IpAddr, time::Duration};
 use structopt::StructOpt;
 
-// Average value for Ubuntu
-const DEFAULT_FILE_DESCRIPTORS_LIMIT: rlimit::rlim = 8000;
-// Safest batch size based on experimentation
-const AVERAGE_BATCH_SIZE: rlimit::rlim = 3000;
+extern crate dirs;
 
 #[macro_use]
 extern crate log;
@@ -24,10 +21,12 @@ extern crate log;
 /// Fast Port Scanner built in Rust.
 /// WARNING Do not use this program against sensitive infrastructure since the
 /// specified server may not be able to handle this many socket connections at once.
+/// - Discord https://discord.gg/rAnvBbg
+/// - GitHub https://github.com/RustScan/RustScan
 struct Opts {
     /// The IP address to scan
     #[structopt(parse(try_from_str))]
-    ip: IpAddr,
+    ip: Option<IpAddr>,
 
     ///Quiet mode. Only output the ports. No Nmap. Useful for grep or outputting to a file.
     #[structopt(short, long)]
@@ -38,15 +37,19 @@ struct Opts {
     /// it will do every port at the same time. Although, your OS may not
     /// support this.
     #[structopt(short, long, default_value = "4500")]
-    batch_size: u32,
+    batch_size: u64,
 
     /// The timeout in milliseconds before a port is assumed to be closed.
     #[structopt(short, long, default_value = "1500")]
-    timeout: u32,
+    timeout: u64,
 
     /// Automatically ups the ULIMIT with the value you provided.
     #[structopt(short, long)]
-    ulimit: Option<rlimit::rlim>,
+    ulimit: Option<u64>,
+
+    // Appdirs location. Use this to print out where the config file should go.
+    #[structopt(short, long)]
+    appdirs: bool,
 
     /// The Nmap arguments to run.
     /// To use the argument -A, end RustScan's args with '-- -A'.
@@ -62,23 +65,91 @@ fn main() {
     // logger
     env_logger::init();
 
-    info!("Starting up");
-    let opts = Opts::from_args();
+    let mut opts = Opts::from_args();
     info!("Mains() `opts` arguments are {:?}", opts);
+
+    let config = dirs::config_dir();
+
+    let mut config_path = match config {
+        Some(x) => x,
+        None => panic!("Couldn't find config dir."),
+    };
+    config_path.push("config.toml");
+
+    if opts.appdirs {
+        // prints config file location and exits
+        println!("The config file is expected to be at {:?}", config_path);
+        exit(1);
+    }
+
+    let ip = match opts.ip{
+        Some(ip) => {ip}
+        None => {panic!("Error. No IP address was supplied.")}
+    };
 
     if !opts.quiet {
         print_opening();
     }
 
-    let ulimit: rlimit::rlim = adjust_ulimit_size(&opts);
-    let batch_size: u32 = infer_batch_size(&opts, ulimit);
+    // Updates ulimit when the argument is set
+
+    // TODO move the ulimit function to a new function
+    // I tried to do this, but I wasn't sure on how to pass opts around
+    // Automatically ups the ulimit
+    if opts.ulimit.is_some() {
+        let limit = opts.ulimit.unwrap();
+        info!("Automatically upping ulimit");
+
+        if !opts.quiet {
+            println!("Automatically upping ulimit to {}", limit);
+        }
+
+        match setrlimit(Resource::NOFILE, limit, limit) {
+            Ok(_) => {}
+            Err(_) => println!("ERROR.  Failed to set Ulimit."),
+        }
+    }
+
+    let (x, _) = getrlimit(Resource::NOFILE).unwrap();
+
+    // if maximum limit is lower than batch size
+    // automatically re-adjust the batch size
+    if x < opts.batch_size {
+        if !opts.quiet {
+            println!("{}", "WARNING: Your file description limit is lower than selected batch size. Please considering upping this (how to is on the README). NOTE: this may be dangerous and may cause harm to sensitive servers. Automatically reducing Batch Size to match your limit, this process isn't harmful but reduces speed.".red());
+        }
+
+        // if the OS supports high file limits like 8000
+        // but the user selected a batch size higher than this
+        // reduce to a lower number
+        // basically, ubuntu is 8000
+        // but i can only get it to work on < 5k in testing
+        // 5k is default, so 3000 seems safe
+        if x > 8000 {
+            opts.batch_size = 3000
+        } else {
+            opts.batch_size = x - 100u64
+        }
+    }
+    // else if the ulimit is higher than batch size
+    // tell the user they can increase batch size
+    // if the user set ulimit arg they probably know what they are doing so don't print this
+    else if x + 2 > opts.batch_size.into() && (opts.ulimit.is_none()) {
+        if !opts.quiet {
+            println!(
+                "Your file description limit is higher than the batch size. You can potentially increase the speed by increasing the batch size, but this may cause harm to sensitive servers. Your limit is {}, try batch size {}.",
+                x,
+                x - 1u64
+            );
+        }
+    }
 
     // 65535 + 1 because of 0 indexing
     let scanner = Scanner::new(
-        opts.ip,
+        ip,
         1,
         65535,
-        batch_size,
+        opts.batch_size.into(),
         Duration::from_millis(opts.timeout.into()),
         opts.quiet,
     );
@@ -114,10 +185,10 @@ fn main() {
         exit(1);
     }
 
-    let addr = opts.ip.to_string();
+    let addr = ip.to_string();
     let user_nmap_args =
         shell_words::split(&opts.command.join(" ")).expect("failed to parse nmap arguments");
-    let nmap_args = build_nmap_arguments(&addr, &ports_str, &user_nmap_args, opts.ip.is_ipv6());
+    let nmap_args = build_nmap_arguments(&addr, &ports_str, &user_nmap_args, ip.is_ipv6());
 
     if !opts.quiet {
         println!("The Nmap command to be run is {}", &nmap_args.join(" "));
@@ -167,58 +238,6 @@ fn build_nmap_arguments<'a>(
     arguments
 }
 
-fn adjust_ulimit_size(opts: &Opts) -> rlimit::rlim {
-    if opts.ulimit.is_some() {
-        let limit: rlimit::rlim = opts.ulimit.unwrap();
-
-        match setrlimit(Resource::NOFILE, limit, limit) {
-            Ok(_) => {
-                if !opts.quiet {
-                    println!("\nAutomatically increasing ulimit value to {}.\n", limit);
-                }
-            }
-            Err(_) => println!("{}", "ERROR. Failed to set ulimit value.".red()),
-        }
-    }
-
-    let (rlim, _) = getrlimit(Resource::NOFILE).unwrap();
-
-    rlim
-}
-
-fn infer_batch_size(opts: &Opts, ulimit: rlimit::rlim) -> u32 {
-    let mut batch_size: rlimit::rlim = opts.batch_size.into();
-
-    // Adjust the batch size when the ulimit value is lower than the desired batch size
-    if ulimit < batch_size {
-        if !opts.quiet {
-            println!("{}", "WARNING: Your file description limit is lower than the provided batch size. Please considering upping this (instructions in our README). NOTE: this may be dangerous and may cause harm to sensitive servers. Automatically reducing the batch Size to match your system's limit, this process isn't harmful but reduces speed.".red());
-        }
-
-        // When the OS supports high file limits like 8000, but the user
-        // selected a batch size higher than this we should reduce it to
-        // a lower number.
-        if ulimit > DEFAULT_FILE_DESCRIPTORS_LIMIT {
-            batch_size = AVERAGE_BATCH_SIZE
-        } else {
-            batch_size = ulimit - 100
-        }
-    }
-    // When the ulimit is higher than the batch size let the user know that the
-    // batch size can be increased unless they specified the ulimit themselves.
-    else if ulimit + 2 > batch_size && (opts.ulimit.is_none()) {
-        if !opts.quiet {
-            println!(
-                "Your file descriptor limit is higher than the batch size. You can potentially increase the speed by increasing the batch size, but this may cause harm to sensitive servers. Your limit is {}, try batch size {}.",
-                ulimit,
-                ulimit - 1
-            );
-        }
-    }
-
-    batch_size as u32
-}
-
 #[cfg(test)]
 mod tests {
     use super::Scanner;
@@ -237,7 +256,7 @@ mod tests {
         // if the scan fails, it wouldn't be able to assert_eq! as it panicked!
         assert_eq!(1, 1);
     }
-    fn does_it_run_ipv6() {
+    fn does_it_run_ivp6() {
         // Makes sure te program still runs and doesn't panic
         let addr = match "::1".parse::<IpAddr>() {
             Ok(res) => res,
