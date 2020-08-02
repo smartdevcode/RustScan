@@ -30,7 +30,7 @@ extern crate log;
 struct Opts {
     /// The IP address to scan
     #[structopt(parse(try_from_str))]
-    ip: IpAddr,
+    ip: Option<IpAddr>,
 
     ///Quiet mode. Only output the ports. No Nmap. Useful for grep or outputting to a file.
     #[structopt(short, long)]
@@ -51,6 +51,10 @@ struct Opts {
     #[structopt(short, long)]
     ulimit: Option<rlimit::rlim>,
 
+    // Appdirs location. Use this to print out where the config file should go.
+    #[structopt(short, long)]
+    appdirs: bool,
+
     /// The Nmap arguments to run.
     /// To use the argument -A, end RustScan's args with '-- -A'.
     /// Example: 'rustscan -T 1500 127.0.0.1 -- -A -sC'.
@@ -69,6 +73,26 @@ fn main() {
     let opts = Opts::from_args();
     info!("Mains() `opts` arguments are {:?}", opts);
 
+    let config = dirs::config_dir();
+
+    let mut config_path = match config {
+        Some(x) => x,
+        None => panic!("Couldn't find config dir."),
+    };
+    config_path.push("rustscan");
+    config_path.push("config.toml");
+
+    if opts.appdirs {
+        // prints config file location and exits
+        println!("The config file is expected to be at {:?}", config_path);
+        exit(1);
+    }
+
+    let ip = match opts.ip {
+        Some(ip) => ip,
+        None => panic!("Error. No IP address was supplied."),
+    };
+
     if !opts.quiet {
         print_opening();
     }
@@ -78,7 +102,7 @@ fn main() {
 
     // 65535 + 1 because of 0 indexing
     let scanner = Scanner::new(
-        opts.ip,
+        ip,
         1,
         65535,
         batch_size,
@@ -117,10 +141,10 @@ fn main() {
         exit(1);
     }
 
-    let addr = opts.ip.to_string();
+    let addr = ip.to_string();
     let user_nmap_args =
         shell_words::split(&opts.command.join(" ")).expect("failed to parse nmap arguments");
-    let nmap_args = build_nmap_arguments(&addr, &ports_str, &user_nmap_args, opts.ip.is_ipv6());
+    let nmap_args = build_nmap_arguments(&addr, &ports_str, &user_nmap_args, ip.is_ipv6());
 
     if !opts.quiet {
         println!("The Nmap command to be run is {}", &nmap_args.join(" "));
@@ -147,21 +171,6 @@ fn print_opening() {
     |_|  \\_\\__,_|___/\\__|_____/ \\___\\__,_|_| |_|
     Faster nmap scanning with rust.";
     println!("{}\n", s.green());
-
-    let config_path = match dirs::config_dir() {
-        Some(mut path) => {
-            path.push("rustscan");
-            path.push("config.toml");
-            path
-        }
-        None => panic!("Couldn't find config dir."),
-    };
-
-    println!(
-        "{} {:?}\n",
-        "The config file is expected to be at".yellow(),
-        config_path
-    );
 }
 
 fn build_nmap_arguments<'a>(
@@ -216,14 +225,17 @@ fn infer_batch_size(opts: &Opts, ulimit: rlimit::rlim) -> u32 {
         // When the OS supports high file limits like 8000, but the user
         // selected a batch size higher than this we should reduce it to
         // a lower number.
-        if ulimit > DEFAULT_FILE_DESCRIPTORS_LIMIT && ulimit > AVERAGE_BATCH_SIZE {
-            // if ulimt is more than the default && the average size on Ubuntu
-            // the user has a weird OS with an incredibly small ulimit
-            // so we half it to prevent any weird errors propping up because of it.
+        if ulimit < AVERAGE_BATCH_SIZE {
+            // ulimit is smaller than aveage batch size
+            // user must have very small ulimit
+            // decrease batch size to half of ulimit
+            info!("Halving batch_size because ulimit is smaller than average batch size");
             batch_size = ulimit / 2
         } else if ulimit > DEFAULT_FILE_DESCRIPTORS_LIMIT {
+            info!("Batcg size is now average batch size");
             batch_size = AVERAGE_BATCH_SIZE
         } else {
+            info!("batch size is ulimit - 100");
             batch_size = ulimit - 100
         }
     }
@@ -232,7 +244,7 @@ fn infer_batch_size(opts: &Opts, ulimit: rlimit::rlim) -> u32 {
     else if ulimit + 2 > batch_size && (opts.ulimit.is_none()) {
         if !opts.quiet {
             println!(
-                "Your file descriptor limit is higher than the batch size. You can potentially increase the speed by increasing the batch size, but this may cause harm to sensitive servers. Your limit is {}, try batch size {}.\n",
+                "Your file descriptor limit is higher than the batch size. You can potentially increase the speed by increasing the batch size, but this may cause harm to sensitive servers. Your limit is {}, try batch size {}.",
                 ulimit,
                 ulimit - 1
             );
@@ -260,6 +272,7 @@ mod tests {
         // if the scan fails, it wouldn't be able to assert_eq! as it panicked!
         assert_eq!(1, 1);
     }
+    #[test]
     fn does_it_run_ipv6() {
         // Makes sure te program still runs and doesn't panic
         let addr = match "::1".parse::<IpAddr>() {
@@ -270,5 +283,58 @@ mod tests {
         let scan_result = block_on(scanner.run());
         // if the scan fails, it wouldn't be able to assert_eq! as it panicked!
         assert_eq!(1, 1);
+    }
+    // #[test]
+    // fn does_it_run_cmnatic() {
+    //     // Makes sure te program still runs and doesn't panic
+    //     // this IP was donated to us for use by Cmnatic
+    //     let addr = match "51.140.231.146".parse::<IpAddr>() {
+    //         Ok(res) => res,
+    //         Err(_) => panic!("Could not parse IP Address"),
+    //     };
+    //     let scanner = Scanner::new(addr, 5000, 250, 500, Duration::from_millis(1000), true);
+    //     let scan_result = block_on(scanner.run());
+    //     // if the scan fails, it wouldn't be able to assert_eq! as it panicked!
+    //     assert_eq!(true, scan_result.contains(&5678));
+    // }
+    #[test]
+    fn does_it_run_quad_0() {
+        let addr = match "0.0.0.0".parse::<IpAddr>() {
+            Ok(res) => res,
+            Err(_) => panic!("Could not parse IP Address"),
+        };
+        let scanner = Scanner::new(addr, 1, 1000, 150, Duration::from_millis(500), true);
+        let scan_result = block_on(scanner.run());
+        assert_eq!(1, 1);
+    }
+    #[test]
+    fn zero_ports() {
+        let addr = match "0.0.0.0".parse::<IpAddr>() {
+            Ok(res) => res,
+            Err(_) => panic!("Could not parse IP Address"),
+        };
+        let scanner = Scanner::new(addr, 1, 1, 150, Duration::from_millis(5), true);
+        let scan_result = block_on(scanner.run());
+        assert_eq!(1, 1);
+    }
+    #[test]
+    fn backwards_ports() {
+        let addr = match "0.0.0.0".parse::<IpAddr>() {
+            Ok(res) => res,
+            Err(_) => panic!("Could not parse IP Address"),
+        };
+        let scanner = Scanner::new(addr, 10, 1, 150, Duration::from_millis(5), true);
+        let scan_result = block_on(scanner.run());
+        assert_eq!(1, 1);
+    }
+    #[test]
+    fn google_test() {
+        let addr = match "8.8.8.8".parse::<IpAddr>() {
+            Ok(res) => res,
+            Err(_) => panic!("Could not parse IP Address"),
+        };
+        let scanner = Scanner::new(addr, 400, 445, 150, Duration::from_millis(1500), true);
+        let scan_result = block_on(scanner.run());
+        assert_eq!(true, scan_result.contains(&443));
     }
 }
