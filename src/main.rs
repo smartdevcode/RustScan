@@ -216,18 +216,14 @@ fn infer_batch_size(opts: &Opts, ulimit: rlimit::rlim) -> u32 {
         // When the OS supports high file limits like 8000, but the user
         // selected a batch size higher than this we should reduce it to
         // a lower number.
-        if ulimit < AVERAGE_BATCH_SIZE {
-            // ulimit is smaller than aveage batch size
-            // user must have very small ulimit
-            // decrease batch size to half of ulimit
-            info!("Halving batch_size because ulimit is smaller than average batch size");
-            println!("{}", "WARNING. Your open file description limit is smaller than expected. You can increas the ulimit with the '-u' flag like '-u 5000' to get default size. Or, use the Docker image. If you do not increase ulimit your RustScan speeds will be much slower in comparison to a normal ulimit.".red());
+        if ulimit > DEFAULT_FILE_DESCRIPTORS_LIMIT && ulimit > AVERAGE_BATCH_SIZE {
+            // if ulimt is more than the default && the average size on Ubuntu
+            // the user has a weird OS with an incredibly small ulimit
+            // so we half it to prevent any weird errors propping up because of it.
             batch_size = ulimit / 2
         } else if ulimit > DEFAULT_FILE_DESCRIPTORS_LIMIT {
-            info!("Batcg size is now average batch size");
             batch_size = AVERAGE_BATCH_SIZE
         } else {
-            info!("batch size is ulimit - 100");
             batch_size = ulimit - 100
         }
     }
@@ -242,8 +238,6 @@ fn infer_batch_size(opts: &Opts, ulimit: rlimit::rlim) -> u32 {
             );
         }
     }
-
-    println!("The batch size is {}", batch_size);
 
     batch_size as u32
 }
@@ -261,72 +255,20 @@ mod tests {
             Ok(res) => res,
             Err(_) => panic!("Could not parse IP Address"),
         };
-        let scanner = Scanner::new(addr, 1, 65535, 100, Duration::from_millis(100), true);
-        block_on(scanner.run());
+        let scanner = Scanner::new(addr, 1, 65535, 100, Duration::from_millis(10), true);
+        let scan_result = block_on(scanner.run());
         // if the scan fails, it wouldn't be able to assert_eq! as it panicked!
         assert_eq!(1, 1);
     }
-    #[test]
     fn does_it_run_ipv6() {
         // Makes sure te program still runs and doesn't panic
         let addr = match "::1".parse::<IpAddr>() {
             Ok(res) => res,
             Err(_) => panic!("Could not parse IP Address"),
         };
-        let scanner = Scanner::new(addr, 1, 65535, 100, Duration::from_millis(100), true);
-        block_on(scanner.run());
+        let scanner = Scanner::new(addr, 1, 65535, 100, Duration::from_millis(10), true);
+        let scan_result = block_on(scanner.run());
         // if the scan fails, it wouldn't be able to assert_eq! as it panicked!
-        assert_eq!(1, 1);
-    }
-    #[test]
-    fn does_it_run_quad_0() {
-        let addr = match "0.0.0.0".parse::<IpAddr>() {
-            Ok(res) => res,
-            Err(_) => panic!("Could not parse IP Address"),
-        };
-        let scanner = Scanner::new(addr, 1, 1000, 100, Duration::from_millis(500), true);
-        block_on(scanner.run());
-        assert_eq!(1, 1);
-    }
-    #[test]
-    fn zero_ports() {
-        let addr = match "0.0.0.0".parse::<IpAddr>() {
-            Ok(res) => res,
-            Err(_) => panic!("Could not parse IP Address"),
-        };
-        let scanner = Scanner::new(addr, 1, 1, 100, Duration::from_millis(50), true);
-        block_on(scanner.run());
-        assert_eq!(1, 1);
-    }
-    #[test]
-    fn backwards_ports() {
-        let addr = match "0.0.0.0".parse::<IpAddr>() {
-            Ok(res) => res,
-            Err(_) => panic!("Could not parse IP Address"),
-        };
-        let scanner = Scanner::new(addr, 10, 1, 100, Duration::from_millis(50), true);
-        block_on(scanner.run());
-        assert_eq!(1, 1);
-    }
-    #[test]
-    fn google_test() {
-        let addr = match "8.8.8.8".parse::<IpAddr>() {
-            Ok(res) => res,
-            Err(_) => panic!("Could not parse IP Address"),
-        };
-        let scanner = Scanner::new(addr, 400, 445, 100, Duration::from_millis(1500), true);
-        block_on(scanner.run());
-        assert_eq!(1, 1);
-    }
-    #[test]
-    fn test_mac_ulimit() {
-        let addr = match "8.8.8.8".parse::<IpAddr>() {
-            Ok(res) => res,
-            Err(_) => panic!("Could not parse IP Address"),
-        };
-        // mac should have this automatically scaled down
-        let scanner = Scanner::new(addr, 400, 600, 10_000, Duration::from_millis(1500), true);
-        block_on(scanner.run());
         assert_eq!(1, 1);
     }
 }
