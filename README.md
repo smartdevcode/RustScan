@@ -21,10 +21,11 @@
 </p>
 <hr>
 
-| <p align="center"><a href="https://hub.docker.com/r/cmnatic/rustscan">🐋 Docker (Recommended) </a></p> | <p align="center"><a href="https://github.com/RustScan/RustScan/releases">👩‍💻 Kali / Debian </p> | <p align="center"><a href="https://aur.archlinux.org/packages/rustscan/">🏗️ Arch </a></p> | <p align="center"><a href="https://crates.io/crates/rustscan">🔧 Cargo (Universal) </a></p> |
+
+| <p align="center"><a href="https://crates.io/crates/rustscan">🔧 Cargo (Universal) </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> Arch </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> HomeBrew </a></p> | <p align="center"><a href="https://crates.io/crates/rust_scan"> Kali / Debian </p> |
 | ---- | ---- | ---- | --- |
-| <p align="center"><img src="pictures/docker.png" /></p> | <p align="center"><img src="pictures/kali.png" /></p> | <p align="center"><img src="pictures/arch.png" /></p> | <p align="center"><img src="pictures/rust.png" /></p>
-| `docker pull cmnatic/rustscan:debian-buster` <p>[Usage](https://github.com/RustScan/RustScan#docker-whale) | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) | `yay -S rustscan` | `cargo install rustscan`
+| <p align="center"><img src="pictures/rust.png" /></p>  | <p align="center"><img src="pictures/arch.png" /></p> | <p align="center"><img src="pictures/apple.png" /></p> | <p align="center"><img src="pictures/kali.png" /></p> |
+| `cargo install rustscan` | `yay -S rustscan` | `brew tap brandonskerritt/rustscan && brew install rustscan` | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) |
 
 <hr>
 
@@ -63,19 +64,6 @@ RustScans **only** job is to reduce the friction between finding open ports and 
 * Let's you choose what Nmap commands to run, or uses the default.
 * IPv6 Support
 
-## ‼️ Important Links
-
-| Installation Guide | Documentation | Discord |
-| ------------------ | ------------- | ------- |
-| 📖 [Installation Guide](https://github.com/RustScan/RustScan#-full-installation-guide) | 📚 [Documentation](https://github.com/RustScan/RustScan/issues/89) | 🦜 [Discord](https://discord.gg/GFrQsGy)
-
-## 🙋 Table of Contents
-* 📖 [Installation Guide](https://github.com/RustScan/RustScan#-full-installation-guide)
-* 🐋 [Docker Usage](https://github.com/RustScan/RustScan#docker-whale)
-* 🦜 [Discord](https://discord.gg/GFrQsGy)
-* 🤸 [Usage](https://github.com/RustScan/RustScan#-usage)
-* 🎪 [Community](https://github.com/RustScan/RustScan#-community)
-
 # 🔭 Why RustScan?
 Why spend time running fast scans and manually copying the ports, or waiting for a 20 minute scan to finish when you can just do all 65k ports in less than a minute?
 
@@ -90,6 +78,19 @@ Why spend time running fast scans and manually copying the ports, or waiting for
 | Fast                                                                                       | ✅        | ❌    | ✅       |
 | Actually useful                                                                            | ❌        | ✅    | ❌       |
 | Realises it's not useful, and pipes the only useful data into the only useful port scanner | ✅        | ❌    | ❌       |
+
+## ‼️ Important Links
+
+| Installation Guide | Documentation | Discord |
+| ------------------ | ------------- | ------- |
+| 📖 [Installation Guide](https://github.com/RustScan/RustScan#-full-installation-guide) | 📚 [Documentation](https://github.com/RustScan/RustScan/issues/89) | 🦜 [Discord](https://discord.gg/GFrQsGy)
+
+## 🙋 Table of Contents
+* 📖 [Installation Guide](https://github.com/RustScan/RustScan#-full-installation-guide)
+* 🦜 [Discord](https://discord.gg/GFrQsGy)
+* 🤸 [Usage](https://github.com/RustScan/RustScan#-usage)
+* 🎪 [Contributing](https://github.com/RustScan/RustScan#-contributing)
+
 
 # 📖 Full Installation Guide
 **You need Nmap**. If you have Kali Linux or Parrot OS installed, you already have Nmap. If not, [follow the nmap install guide](https://nmap.org/download.html).
@@ -112,43 +113,18 @@ Run the commpand `dpkg -i` on the file.
 
 Note: sometimes you can double click the file to achieve the same result.
 
-## Docker :whale:
+### 🥧 .deb file not working?
+The .deb file only works on AMD64 CPUs. If yours is different (such as a Raspberry Pi) or the .deb file doesn't work, it is easy to build the .deb file yourself.
+**Note**: It is easier to install Rust and install via Cargo, then it is to build the .deb file. But this is just in case!
 
-Docker is the recommended way of installing RustScan. This is because:
-* It has a high open file descriptor limit, which is one of the [main problems](https://github.com/RustScan/RustScan/issues/40) with RustScan. Now you don't have to fiddle around trying to understand your OS.
-* It works on all systems, regardless of OS. Even Windows, which we don't officially support.
-* The Docker image uses the latest build from Cargo, our main source-of-truth package. This means that you will always be using the latest version.
-* No need to install Rust, Cargo, or Nmap.
-
-To install Docker, [follow their guide](https://docs.docker.com/engine/install/).
-
-**Once Docker is installed, run this command against the IP you want to target.**
-
-```
-docker run -it --rm --name rustscan cmnatic/rustscan:debian-buster rustscan 127.0.0.1
-```
-
-Note: this will scan the Docker's localhost, not your own.
-
-This will download the Docker image. 
-
-Once done, you will no longer need to re-download the image (except when RustScan updates) and can use RustScan like a normal application.
-
-You will have to run this command every time, so we suggest aliasing it to something memorable.
-
-```
-alias rustscan='docker run -it --rm --name rustscan cmnatic/rustscan:debian-buster rustscan'
-```
-
-Then we can:
-
-```
-rustscan 127.0.0.1 -t 500 -b 1500 -- -A
-```
+1. Install Rust You can do this with `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh` which I took from the Rust website https://www.rust-lang.org/tools/install
+2. `cargo install rustscan` if you want the easiest method possible. Otherwise, to build the .deb file `cargo install cargo-deb`
+3. Git clone this repo `git clone https://github.com/brandonskerritt/RustScan`
+4. cd RustScan (into the git cloned repo) `cd RustScan`
+5. Run `cargo deb`
+6. Your .deb file is now located in `target/releases/Debian/`
 
 ## 🍺 HomeBrew
-
-**Note for Mac users** Mac OS has a very, very small ulimit size. This will negatively impact RustScan by a significant amount. Please use the Docker container, or tell RustScan to up the ulimit size on every run.
 
 Tap the brew:
 
@@ -171,9 +147,7 @@ brew install rustscan
 5. Symlink to the binary or something. Whatever you want!
 
 ## 🦊 Community Distributions
-Here are all of RustScan's community distributions.
-
-If you maintain a community distribution and want it listed here, leave an issue / pull request / Discord message or however you want to let us know.
+Here are all of RustScan's distributions, along with some community ones.
 
 * [OpenSuse](https://software.opensuse.org/package/rustscan?search_term=rustscan)
 
