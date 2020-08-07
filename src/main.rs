@@ -111,29 +111,36 @@ fn main() {
 
         // If we got here it means the IP was not found within the HashMap, this
         // means the scan couldn't find any open ports for it.
-
-        let x = format!("{} Looks like I didn't find any open ports for {:?}. This is usually caused by a high batch size.
-        \n*I used {} batch size, consider lowering to {} with {} or a comfortable number for your system.
-        \n Alternatively, increase the timeout if your ping is high. Rustscan -T 2000 for 2000 second timeout.\n",
-        "ERROR",
-        ip,
-        opts.batch_size,
-        (opts.batch_size / 2).to_string(),
-        "'rustscan -b <batch_size> <ip address>'");
-        warning!(x, opts.quiet);
+        if opts.quiet {
+            let x = format!("{} {:?}", "No ports found for", ip);
+            detail!(x);
+        } else {
+            let x = format!("{} Looks like I didn't find any open ports for {:?}. This is usually caused by a high batch size.
+            \n*I used {} batch size, consider lowering to {} with {} or a comfortable number for your system.
+            \n Alternatively, increase the timeout if your ping is high. Rustscan -T 2000 for 2000 second timeout.\n",
+            "ERROR",
+            ip,
+            opts.batch_size,
+            (opts.batch_size / 2).to_string(),
+            "'rustscan -b <batch_size> <ip address>'");
+            warning!(x);
+        }
     }
 
     for (ip, ports) in ports_per_ip.iter_mut() {
         let nmap_str_ports: Vec<String> = ports.into_iter().map(|port| port.to_string()).collect();
 
-        detail!("Starting Nmap", opts.quiet);
+        if !opts.quiet {
+            println!("\n");
+            detail!("Starting Nmap");
+        }
 
         // nmap port style is 80,443. Comma separated with no spaces.
         let ports_str = nmap_str_ports.join(",");
 
         // if quiet mode is on nmap should not be spawned
         if opts.quiet {
-            println!("{}", ports_str);
+            detail!(format!("Ports: {:?}", ports_str));
             continue;
         }
 
@@ -170,8 +177,7 @@ Faster Nmap scanning with Rust."#;
 : https://discord.gg/GFrQsGy           :
 : https://github.com/RustScan/RustScan :
  --------------------------------------"#;
-    println!("{}", info.gradient(Color::Yellow).bold());
-    funny_opening!();
+    println!("{}\n", info.gradient(Color::Red).bold());
 
     let config_path = match dirs::config_dir() {
         Some(mut path) => {
@@ -215,10 +221,12 @@ fn adjust_ulimit_size(opts: &Opts) -> rlimit::rlim {
 
         match setrlimit(Resource::NOFILE, limit, limit) {
             Ok(_) => {
-                detail!(
-                    format!("Automatically increasing ulimit value to {}.", limit),
-                    opts.quiet
-                );
+                if !opts.quiet {
+                    detail!(format!(
+                        "Automatically increasing ulimit value to {}.",
+                        limit
+                    ));
+                }
             }
             Err(_) => println!("{}", "ERROR. Failed to set ulimit value."),
         }
@@ -234,12 +242,9 @@ fn infer_batch_size(opts: &Opts, ulimit: rlimit::rlim) -> u16 {
 
     // Adjust the batch size when the ulimit value is lower than the desired batch size
     if ulimit < batch_size {
-        warning!(
-            "File limit is lower than default batch size.
-         Consider upping with --ulimt. 
-         May cause harm to sensitive servers",
-            opts.quiet
-        );
+        if !opts.quiet {
+            warning!("File limit is lower than default batch size. Consider upping with --ulimt. May cause harm to sensitive servers");
+        }
 
         // When the OS supports high file limits like 8000, but the user
         // selected a batch size higher than this we should reduce it to
@@ -261,10 +266,12 @@ fn infer_batch_size(opts: &Opts, ulimit: rlimit::rlim) -> u16 {
     // When the ulimit is higher than the batch size let the user know that the
     // batch size can be increased unless they specified the ulimit themselves.
     else if ulimit + 2 > batch_size && (opts.ulimit.is_none()) {
-        detail!(format!(
+        if !opts.quiet {
+            detail!(format!(
                 "File limit higher than batch size. Can increase speed by increasing batch size '-b {}'.",
                 ulimit - 100
-            ), opts.quiet);
+            ));
+        }
     }
 
     batch_size as u16
