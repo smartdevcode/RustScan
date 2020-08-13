@@ -122,15 +122,15 @@ Docker is the recommended way of installing RustScan. This is because:
 
 To install Docker, [follow their guide](https://docs.docker.com/engine/install/).
 
-**Once Docker is installed, you can either build your own image using the `Dockerfile` (alpine) provided in the repo, or alternatively, use the published Docker image like below (most convenient)**
-
-Simply run this command against the IP you want to target:
+**Once Docker is installed, run this command against the IP you want to target.**
 
 ```
 docker run -it --rm --name rustscan cmnatic/rustscan:debian-buster rustscan 127.0.0.1
 ```
 
 Note: this will scan the Docker's localhost, not your own.
+
+This will download the Docker image.
 
 Once done, you will no longer need to re-download the image (except when RustScan updates) and can use RustScan like a normal application.
 
@@ -144,18 +144,6 @@ Then we can:
 
 ```
 rustscan 127.0.0.1 -t 500 -b 1500 -- -A
-```
-
-#### To build your own image:
-
-Download the repo:
-```
-git clone https://github.com/RustScan/RustScan.git
-```
-
-Build away!
-```
-docker build -t <yourimagename> .
 ```
 
 ## 🍺 HomeBrew
@@ -365,7 +353,7 @@ Please read the [contributing.md file](contributing.md)
 
 ## Contributors ✨
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -387,6 +375,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/Atul9"><img src="https://avatars1.githubusercontent.com/u/3390330?v=4" width="100px;" alt=""/><br /><sub><b>Atul Bhosale</b></sub></a><br /><a href="https://github.com/RustScan/RustScan/commits?author=Atul9" title="Code">💻</a></td>
     <td align="center"><a href="https://tgotwig.me"><img src="https://avatars0.githubusercontent.com/u/30773779?v=4" width="100px;" alt=""/><br /><sub><b>Thomas Gotwig</b></sub></a><br /><a href="#platform-TGotwig" title="Packaging/porting to new platform">📦</a></td>
     <td align="center"><a href="https://github.com/remigourdon"><img src="https://avatars3.githubusercontent.com/u/2874133?v=4" width="100px;" alt=""/><br /><sub><b>Rémi Gourdon</b></sub></a><br /><a href="https://github.com/RustScan/RustScan/commits?author=remigourdon" title="Documentation">📖</a> <a href="https://github.com/RustScan/RustScan/commits?author=remigourdon" title="Code">💻</a></td>
+    <td align="center"><a href="https://cmnatic.co.uk"><img src="https://avatars3.githubusercontent.com/u/4163116?v=4" width="100px;" alt=""/><br /><sub><b>Ben (CMNatic)</b></sub></a><br /><a href="https://github.com/RustScan/RustScan/commits?author=cmnatic" title="Code">💻</a> <a href="https://github.com/RustScan/RustScan/commits?author=cmnatic" title="Documentation">📖</a> <a href="#design-cmnatic" title="Design">🎨</a></td>
   </tr>
 </table>
 
