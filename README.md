@@ -24,7 +24,7 @@
 | <p align="center"><a href="https://hub.docker.com/r/cmnatic/rustscan">🐋 Docker (Recommended) </a></p> | <p align="center"><a href="https://github.com/RustScan/RustScan/releases">👩‍💻 Kali / Debian </p> | <p align="center"><a href="https://aur.archlinux.org/packages/rustscan/">🏗️ Arch </a></p> | <p align="center"><a href="https://crates.io/crates/rustscan">🔧 Cargo (Universal) </a></p> |
 | ---- | ---- | ---- | --- |
 | <p align="center"><img src="pictures/docker.png" /></p> | <p align="center"><img src="pictures/kali.png" /></p> | <p align="center"><img src="pictures/arch.png" /></p> | <p align="center"><img src="pictures/rust.png" /></p>
-| `docker pull cmnatic/rustscan:debian-buster` <p>[Usage](https://github.com/RustScan/RustScan#docker-whale) | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) | `yay -S rustscan` | `cargo install rustscan`
+| `docker pull rustscan/rustscan:alpine` <p>[Usage](https://github.com/RustScan/RustScan#docker-whale) | [Read the install guide](https://github.com/brandonskerritt/RustScan/blob/master/README.md#%EF%B8%8F-debian--kali) | `yay -S rustscan` | `cargo install rustscan`
 
 <hr>
 
@@ -127,7 +127,7 @@ To install Docker, [follow their guide](https://docs.docker.com/engine/install/)
 Simply run this command against the IP you want to target:
 
 ```
-docker run -it --rm --name rustscan cmnatic/rustscan:debian-buster rustscan 127.0.0.1
+docker run -it --rm --name rustscan rustscan/rustscan:alpine <rustscan arguments here> <ip address to scan>
 ```
 
 Note: this will scan the Docker's localhost, not your own.
@@ -137,7 +137,7 @@ Once done, you will no longer need to re-download the image (except when RustSca
 You will have to run this command every time, so we suggest aliasing it to something memorable.
 
 ```
-alias rustscan='docker run -it --rm --name rustscan cmnatic/rustscan:debian-buster rustscan'
+alias rustscan='docker run -it --rm --name rustscan rustscan/rustscan:alpine <rustscan arguments here> <ip address to scan>'
 ```
 
 Then we can:
@@ -151,6 +151,11 @@ rustscan 127.0.0.1 -t 500 -b 1500 -- -A
 Download the repo:
 ```
 git clone https://github.com/RustScan/RustScan.git
+```
+
+Ensure you navigate to the download location of the repo:
+```
+cd /path/to/download/RustScan
 ```
 
 Build away!
@@ -252,7 +257,7 @@ You can also use both of these at the same time, to make it as slow or as fast a
 
 **Please** do not use this tool against sensitive servers. It is designed mainly for Capture the Flag events, not real world servers with sensitive data.
 
-## 🚨 Thread Panicked at Main: Too Many Open Files
+## 🚨 Thread Paniced at Main: Too Many Open Files
 This is the most common error found in RustScan.
 
 The open file limit is how many open sockets you can have at any given time.
@@ -365,7 +370,7 @@ Please read the [contributing.md file](contributing.md)
 
 ## Contributors ✨
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -387,7 +392,6 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/Atul9"><img src="https://avatars1.githubusercontent.com/u/3390330?v=4" width="100px;" alt=""/><br /><sub><b>Atul Bhosale</b></sub></a><br /><a href="https://github.com/RustScan/RustScan/commits?author=Atul9" title="Code">💻</a></td>
     <td align="center"><a href="https://tgotwig.me"><img src="https://avatars0.githubusercontent.com/u/30773779?v=4" width="100px;" alt=""/><br /><sub><b>Thomas Gotwig</b></sub></a><br /><a href="#platform-TGotwig" title="Packaging/porting to new platform">📦</a></td>
     <td align="center"><a href="https://github.com/remigourdon"><img src="https://avatars3.githubusercontent.com/u/2874133?v=4" width="100px;" alt=""/><br /><sub><b>Rémi Gourdon</b></sub></a><br /><a href="https://github.com/RustScan/RustScan/commits?author=remigourdon" title="Documentation">📖</a> <a href="https://github.com/RustScan/RustScan/commits?author=remigourdon" title="Code">💻</a></td>
-    <td align="center"><a href="https://cmnatic.co.uk"><img src="https://avatars3.githubusercontent.com/u/4163116?v=4" width="100px;" alt=""/><br /><sub><b>Ben (CMNatic)</b></sub></a><br /><a href="https://github.com/RustScan/RustScan/commits?author=cmnatic" title="Code">💻</a> <a href="https://github.com/RustScan/RustScan/commits?author=cmnatic" title="Documentation">📖</a> <a href="#design-cmnatic" title="Design">🎨</a></td>
   </tr>
 </table>
 
