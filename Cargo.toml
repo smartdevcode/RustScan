@@ -10,13 +10,18 @@ license = "MIT"
 keywords = ["port", "scanning", "nmap"]
 categories = ["command-line-utilities"]
 readme="README.md"
+exclude = [
+    ".github/*",
+    "pictures/*",
+    "rustscan-debbuilder/*",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 colored = "2.0.0"
 structopt = "0.3.16"
-async-std = "1.6.2"
+async-std = "1.6.3"
 futures = "0.3"
 rlimit = "0.4.0"
 shell-words = "1.0.0"
