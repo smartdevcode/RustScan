@@ -54,9 +54,9 @@ fn parse_range(input: &str) -> Result<PortRange, String> {
 /// - Discord https://discord.gg/GFrQsGy
 /// - GitHub https://github.com/RustScan/RustScan
 pub struct Opts {
-    /// A list of comma separated CIDRs, IPs, or hosts to be scanned.
+    /// A list of comma separated IP addresses or hosts to be scanned.
     #[structopt(use_delimiter = true)]
-    pub addresses: Vec<String>,
+    pub ips_or_hosts: Vec<String>,
 
     /// A list of comma separed ports to be scanned. Example: 80,443,8080.
     #[structopt(short, long, use_delimiter = true)]
@@ -146,7 +146,15 @@ impl Opts {
             }
         }
 
-        merge_required!(addresses, quiet, accessible, batch_size, timeout, scan_order, command);
+        merge_required!(
+            ips_or_hosts,
+            quiet,
+            accessible,
+            batch_size,
+            timeout,
+            scan_order,
+            command
+        );
     }
 
     fn merge_optional(&mut self, config: &Config) {
@@ -169,7 +177,7 @@ impl Opts {
 /// generate the final Opts struct.
 #[derive(Debug, Deserialize)]
 pub struct Config {
-    addresses: Option<Vec<String>>,
+    ips_or_hosts: Option<Vec<String>>,
     ports: Option<Vec<u16>>,
     range: Option<PortRange>,
     quiet: Option<bool>,
@@ -188,7 +196,7 @@ impl Config {
     ///
     /// # Format
     ///
-    /// addresses = ["127.0.0.1", "127.0.0.1"]
+    /// ips_or_hosts = ["127.0.0.1", "127.0.0.1"]
     /// ports = [80, 443, 8080]
     /// quiet = true
     /// scan_order: "Serial"
@@ -246,7 +254,7 @@ mod tests {
     #[test]
     fn opts_no_merge_when_config_is_ignored() {
         let mut opts = Opts {
-            addresses: vec![],
+            ips_or_hosts: vec![],
             ports: None,
             range: None,
             quiet: false,
@@ -261,7 +269,7 @@ mod tests {
         };
 
         let config = Config {
-            addresses: Some(vec!["127.0.0.1".to_owned()]),
+            ips_or_hosts: Some(vec!["127.0.0.1".to_owned()]),
             ports: None,
             range: None,
             quiet: Some(true),
@@ -276,7 +284,7 @@ mod tests {
 
         opts.merge(&config);
 
-        assert_eq!(opts.addresses, vec![] as Vec<String>);
+        assert_eq!(opts.ips_or_hosts, vec![] as Vec<String>);
         assert_eq!(opts.quiet, false);
         assert_eq!(opts.accessible, false);
         assert_eq!(opts.timeout, 0);
@@ -287,7 +295,7 @@ mod tests {
     #[test]
     fn opts_merge_required_arguments() {
         let mut opts = Opts {
-            addresses: vec![],
+            ips_or_hosts: vec![],
             ports: None,
             range: None,
             quiet: false,
@@ -302,7 +310,7 @@ mod tests {
         };
 
         let config = Config {
-            addresses: Some(vec!["127.0.0.1".to_owned()]),
+            ips_or_hosts: Some(vec!["127.0.0.1".to_owned()]),
             ports: None,
             no_nmap: Some(false),
             range: None,
@@ -317,7 +325,7 @@ mod tests {
 
         opts.merge_required(&config);
 
-        assert_eq!(opts.addresses, config.addresses.unwrap());
+        assert_eq!(opts.ips_or_hosts, config.ips_or_hosts.unwrap());
         assert_eq!(opts.quiet, config.quiet.unwrap());
         assert_eq!(opts.timeout, config.timeout.unwrap());
         assert_eq!(opts.command, config.command.unwrap());
@@ -328,7 +336,7 @@ mod tests {
     #[test]
     fn opts_merge_optional_arguments() {
         let mut opts = Opts {
-            addresses: vec![],
+            ips_or_hosts: vec![],
             ports: None,
             range: None,
             quiet: false,
@@ -343,7 +351,7 @@ mod tests {
         };
 
         let config = Config {
-            addresses: None,
+            ips_or_hosts: None,
             ports: Some(vec![80, 403]),
             range: Some(PortRange {
                 start: 1,
